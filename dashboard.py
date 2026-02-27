@@ -272,7 +272,7 @@ with st.sidebar:
     )
     export_enabled = st.toggle(
         "Export",
-        value=False,
+        value= True,
         help="When ON, surplus turbine power above demand is exported to the grid "
              "(capped at 40,000 kW). Exported energy is subtracted before curtailment is calculated.",
     )
