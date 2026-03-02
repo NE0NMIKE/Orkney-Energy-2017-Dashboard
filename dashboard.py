@@ -385,7 +385,7 @@ def build_merged(demand_slice, turbine_slice,
     # actual_kw is also zeroed explicitly because wind perturbation (wind_spread_sigma > 0)
     # can push some per-turbine winds below cut-out even when the mean exceeds it,
     # causing eval_power_curve to return non-zero for those turbines.
-    storm_mask = t["Wind_ms"] > cut_out_speed
+    storm_mask = wind > cut_out_speed  # use fillna'd array so NaN rows are never missed
     t["storm_shutdown_kw"] = t["potential_kw"].where(storm_mask, 0.0)
     t.loc[storm_mask, "potential_kw"] = 0.0
     t.loc[storm_mask, "actual_kw"]    = 0.0
