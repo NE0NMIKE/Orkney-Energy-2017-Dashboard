@@ -471,7 +471,7 @@ def make_figure(x, demand, potential, actual, curtailed, title, y_label,
     if storm_shutdown is not None:
         fig.add_trace(go.Scatter(
             x=x, y=storm_shutdown, name="Storm Shutdown", mode="lines",
-            line=dict(color="#9467bd", width=1.5, dash="dot"),
+            line=dict(color="#ea0505", width=1.5, dash="dot"),
             hovertemplate="%{x}<br>Storm Shutdown: %{y:,.0f} " + y_label + "<extra></extra>",
         ))
     fig.update_layout(
