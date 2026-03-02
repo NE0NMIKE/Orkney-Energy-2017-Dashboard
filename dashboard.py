@@ -261,7 +261,7 @@ _zeros_removed = int(
 with st.sidebar:
     st.header("Inputs")
     num_households = st.number_input(
-        "Number of households", min_value=1, max_value=100000, value=44000, step=500,
+        "Number of households", min_value=1, max_value=100000, value=43500, step=500,
         help="Total number of residential households in the modelled area. "
              "Scales the per-household mean demand (`Demand_mean_kw`) to a fleet-wide total.",
     )
@@ -272,7 +272,7 @@ with st.sidebar:
     )
     export_enabled = st.toggle(
         "Export",
-        value=False,
+        value= True,
         help="When ON, surplus turbine power above demand is exported to the grid "
              "(capped at 40,000 kW). Exported energy is subtracted before curtailment is calculated.",
     )
