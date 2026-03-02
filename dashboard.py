@@ -272,7 +272,7 @@ with st.sidebar:
     )
     export_enabled = st.toggle(
         "Export",
-        value= True,
+        value=False,
         help="When ON, surplus turbine power above demand is exported to the grid "
              "(capped at 40,000 kW). Exported energy is subtracted before curtailment is calculated.",
     )
@@ -380,11 +380,15 @@ def build_merged(demand_slice, turbine_slice,
     doy = t["Timestamp"].dt.day_of_year.values.astype(float)
     t["potential_kw"] = potential_power_kw_vec(wind, doy, rotor_diameter_m, num_turbines, cp=cp_factor)
     # Storm shutdown: turbines cannot operate above cut-out speed.
-    # Store the would-be potential as storm_shutdown_kw, then zero out potential
-    # so that Turbine Power ≤ Potential always (both are 0 during storms).
+    # Store the would-be potential as storm_shutdown_kw, then zero out both
+    # potential_kw and actual_kw so that all three are 0 during storms.
+    # actual_kw is also zeroed explicitly because wind perturbation (wind_spread_sigma > 0)
+    # can push some per-turbine winds below cut-out even when the mean exceeds it,
+    # causing eval_power_curve to return non-zero for those turbines.
     storm_mask = t["Wind_ms"] > cut_out_speed
     t["storm_shutdown_kw"] = t["potential_kw"].where(storm_mask, 0.0)
     t.loc[storm_mask, "potential_kw"] = 0.0
+    t.loc[storm_mask, "actual_kw"]    = 0.0
 
     m = pd.merge(
         d[["Timestamp", "demand_kw"]],
