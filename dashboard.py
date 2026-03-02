@@ -261,12 +261,12 @@ _zeros_removed = int(
 with st.sidebar:
     st.header("Inputs")
     num_households = st.number_input(
-        "Number of households", min_value=1, max_value=100000, value=43500, step=500,
+        "Number of households", min_value=1, max_value=100000, value=43400, step=500,
         help="Total number of residential households in the modelled area. "
              "Scales the per-household mean demand (`Demand_mean_kw`) to a fleet-wide total.",
     )
     num_turbines = st.number_input(
-        "Number of turbines", min_value=1, max_value=639, value=639, step=1,
+        "Number of turbines", min_value=1, max_value=639, value=100, step=1,
         help="Number of wind turbines in the modelled wind farm. "
              "Total turbine power = single-turbine LUT power × number of turbines.",
     )
