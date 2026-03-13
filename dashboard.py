@@ -1243,9 +1243,9 @@ with tab_summary:
     st.plotly_chart(fig_ann_energy, use_container_width=True)
 
     # Annual hours bar chart
-    ann_hours_labels = ["Total Event Hours", "Curtailment Hours", "Storm Shutdown Hours"]
+    ann_hours_labels = ["Total Hours", "Curtailment Hours", "Storm Shutdown Hours"]
     ann_hours_vals = [
-        ann_totals["curtailed_hours"].sum() + ann_totals["storm_shutdown_hours"].sum(),
+        8760.0,
         ann_totals["curtailed_hours"].sum(),
         ann_totals["storm_shutdown_hours"].sum(),
     ]
