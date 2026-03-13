@@ -548,7 +548,7 @@ def show_metrics(total_d, total_actual, total_potential, total_c,
 # can reference them. Streamlit always executes all tab blocks on every run.
 wind_spread_sigma    = 1.0
 curtail_threshold_kw = 3925
-rotor_diameter_m     = 44.0
+rotor_diameter_m     = 56.00
 rated_power_kw       = 900
 cp_factor            = 0.45
 cut_in_speed         = 3.0
@@ -556,8 +556,8 @@ cut_out_speed        = 25.0
 curtail_on_potential = False
 use_fixed_data       = False
 availability_factor  = 0.85
-export_peak_limit_kw     = 40_000
-export_offpeak_limit_kw  = 40_000
+export_peak_limit_kw     = 30_000
+export_offpeak_limit_kw  = 5_000
 export_peak_start_hour   = 7
 export_peak_end_hour     = 23
 
