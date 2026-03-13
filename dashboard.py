@@ -1206,7 +1206,7 @@ with tab_summary:
     )
     st.plotly_chart(fig_hours, use_container_width=True)
 
-    # ── Annual totals metrics ──────────────────────────────────────────────────
+    # ── Annual totals ──────────────────────────────────────────────────────────
     st.subheader("Annual Totals")
     ann_totals = daily_totals(
         demand_df, turbine_df_active,
@@ -1214,6 +1214,51 @@ with tab_summary:
         lut_wind, lut_power, rated_wind_speed_fit, cut_in_speed, cut_out_speed,
         cp_factor=cp_factor, availability_factor=availability_factor,
     )
+
+    # Annual energy bar chart
+    ann_energy_labels = ["Potential", "Turbine", "Exported", "Demand", "Curtailed"]
+    ann_energy_vals = [
+        ann_totals["potential_kwh"].sum() / 1e6,
+        ann_totals["actual_kwh"].sum() / 1e6,
+        ann_totals["export_kwh"].sum() / 1e6,
+        ann_totals["demand_kwh"].sum() / 1e6,
+        ann_totals["curtailed_kwh"].sum() / 1e6,
+    ]
+    ann_energy_colors = [color_potential, color_turbine, color_exported, color_demand, color_curtailed]
+    fig_ann_energy = go.Figure(go.Bar(
+        x=ann_energy_labels, y=ann_energy_vals,
+        marker_color=ann_energy_colors,
+        hovertemplate="%{x}: %{y:.2f} GWh<extra></extra>",
+    ))
+    fig_ann_energy.update_layout(
+        xaxis_title="Category",
+        yaxis_title="Energy (GWh)",
+        margin=dict(t=40),
+        showlegend=False,
+    )
+    st.plotly_chart(fig_ann_energy, use_container_width=True)
+
+    # Annual hours bar chart
+    ann_hours_labels = ["Total Event Hours", "Curtailment Hours", "Storm Shutdown Hours"]
+    ann_hours_vals = [
+        ann_totals["curtailed_hours"].sum() + ann_totals["storm_shutdown_hours"].sum(),
+        ann_totals["curtailed_hours"].sum(),
+        ann_totals["storm_shutdown_hours"].sum(),
+    ]
+    ann_hours_colors = [color_total_hrs, color_curtail_hrs, color_storm_hrs]
+    fig_ann_hours = go.Figure(go.Bar(
+        x=ann_hours_labels, y=ann_hours_vals,
+        marker_color=ann_hours_colors,
+        hovertemplate="%{x}: %{y:.1f} h<extra></extra>",
+    ))
+    fig_ann_hours.update_layout(
+        xaxis_title="Category",
+        yaxis_title="Hours",
+        margin=dict(t=40),
+        showlegend=False,
+    )
+    st.plotly_chart(fig_ann_hours, use_container_width=True)
+
     show_metrics(
         ann_totals["demand_kwh"].sum(), ann_totals["actual_kwh"].sum(),
         ann_totals["potential_kwh"].sum(), ann_totals["curtailed_kwh"].sum(),
