@@ -273,8 +273,9 @@ with st.sidebar:
     export_enabled = st.toggle(
         "Export",
         value= True,
-        help="When ON, surplus turbine power above demand is exported to the grid "
-             "(capped at 40,000 kW). Exported energy is subtracted before curtailment is calculated.",
+        help="When ON, surplus turbine power above demand is exported to the grid, "
+             "subject to the peak/off-peak export limits set in Analysis Settings. "
+             "Exported energy is subtracted before curtailment is calculated.",
     )
 
     st.divider()
@@ -401,7 +402,10 @@ def build_merged(demand_slice, turbine_slice,
     actual_surplus = (m["actual_kw"] - m["demand_kw"]).clip(lower=0)
 
     if export_enabled:
-        m["export_kw"] = actual_surplus.clip(upper=40_000)
+        hour = m["Timestamp"].dt.hour
+        is_peak = (hour >= export_peak_start_hour) & (hour < export_peak_end_hour)
+        export_cap = np.where(is_peak, export_peak_limit_kw, export_offpeak_limit_kw)
+        m["export_kw"] = np.minimum(actual_surplus.clip(lower=0), export_cap)
     else:
         m["export_kw"] = 0.0
 
@@ -516,7 +520,8 @@ def show_metrics(total_d, total_actual, total_potential, total_c,
                      "If 'theoretical basis' is enabled, uses potential power instead of actual.")
     col5.metric(f"{prefix} Exported",     f"{total_exp:,.0f} kWh",
                 help="Energy exported to the wider grid when turbine output exceeds local demand. "
-                     "Capped at 40,000 kW per interval. Only active when the Export toggle is ON.")
+                     "Capped at the peak or off-peak export limit (set in Analysis Settings) depending on the hour. "
+                     "Only active when the Export toggle is ON.")
     col6.metric(f"{prefix} Unmet Demand", f"{total_unmet:,.0f} kWh",
                 delta=f"{unmet_pct:.1f}% of demand", delta_color="inverse",
                 help="Energy demand that could not be met by turbine output. "
@@ -541,16 +546,20 @@ def show_metrics(total_d, total_actual, total_potential, total_c,
 # ── Setting defaults (overridden inside tab_settings on every run) ────────────
 # These must be defined before the tab blocks so that Daily/Monthly/Seasonal/Yearly
 # can reference them. Streamlit always executes all tab blocks on every run.
-wind_spread_sigma   = 1.0
+wind_spread_sigma    = 1.0
 curtail_threshold_kw = 3925
-rotor_diameter_m    = 44.0
-rated_power_kw      = 900
-cp_factor           = 0.45
-cut_in_speed        = 3.0
-cut_out_speed       = 25.0
+rotor_diameter_m     = 44.0
+rated_power_kw       = 900
+cp_factor            = 0.45
+cut_in_speed         = 3.0
+cut_out_speed        = 25.0
 curtail_on_potential = False
-use_fixed_data      = False
+use_fixed_data       = False
 availability_factor  = 0.85
+export_peak_limit_kw     = 40_000
+export_offpeak_limit_kw  = 40_000
+export_peak_start_hour   = 7
+export_peak_end_hour     = 23
 
 # ── Tabs ──────────────────────────────────────────────────────────────────────
 tab_daily, tab_monthly, tab_seasonal, tab_yearly, tab_settings = st.tabs(
@@ -617,6 +626,44 @@ with tab_settings:
                  "The default (3,925 kW) is roughly one full turbine at rated output — "
                  "filtering out minor grid imbalances.",
         )
+
+    st.divider()
+    st.subheader("Export Limits")
+
+    col_e, col_f = st.columns(2)
+    with col_e:
+        export_peak_limit_kw = st.number_input(
+            "Peak export limit (kW)",
+            min_value=0, max_value=500_000, value=40_000, step=1_000,
+            help="Maximum power (kW) that can be exported to the grid during peak hours. "
+                 "Surplus above this cap is curtailed.",
+        )
+        export_peak_start_hour = st.number_input(
+            "Peak start hour (0–23)",
+            min_value=0, max_value=23, value=7, step=1,
+            help="Hour of day (24h) at which peak export limits take effect.",
+        )
+    with col_f:
+        export_offpeak_limit_kw = st.number_input(
+            "Off-peak export limit (kW)",
+            min_value=0, max_value=500_000, value=40_000, step=1_000,
+            help="Maximum power (kW) that can be exported to the grid outside peak hours. "
+                 "Surplus above this cap is curtailed.",
+        )
+        export_peak_end_hour = st.number_input(
+            "Peak end hour (1–24)",
+            min_value=1, max_value=24, value=23, step=1,
+            help="Hour of day (24h) at which peak export limits end (exclusive). "
+                 "E.g. 23 means peak runs from peak start up to but not including 23:00.",
+        )
+    _peak_label = f"{export_peak_start_hour:02d}:00\u2013{export_peak_end_hour:02d}:00"
+    _offpeak_label = f"{export_peak_end_hour:02d}:00\u2013{export_peak_start_hour:02d}:00"
+    st.caption(
+        f"Peak ({_peak_label}): **{export_peak_limit_kw:,} kW** cap \u2502 "
+        f"Off-peak ({_offpeak_label}): **{export_offpeak_limit_kw:,} kW** cap"
+    )
+
+    st.divider()
 
     curtail_on_potential = st.toggle(
         "Use theoretical potential power as curtailment basis",
