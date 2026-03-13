@@ -266,7 +266,7 @@ with st.sidebar:
              "Scales the per-household mean demand (`Demand_mean_kw`) to a fleet-wide total.",
     )
     num_turbines = st.number_input(
-        "Number of turbines", min_value=1, max_value=639, value=100, step=1,
+        "Number of turbines", min_value=1, max_value=639, value=32, step=1,
         help="Number of wind turbines in the modelled wind farm. "
              "Total turbine power = single-turbine LUT power × number of turbines.",
     )
@@ -554,7 +554,7 @@ cp_factor            = 0.45
 cut_in_speed         = 3.0
 cut_out_speed        = 25.0
 curtail_on_potential = False
-use_fixed_data       = False
+use_fixed_data       = True
 availability_factor  = 0.85
 export_peak_limit_kw     = 30_000
 export_offpeak_limit_kw  = 5_000
@@ -573,7 +573,7 @@ with tab_settings:
     col_a, col_b = st.columns(2)
     with col_a:
         rotor_diameter_m = st.number_input(
-            "Rotor diameter (m)", min_value=1.0, max_value=200.0, value=44.0, step=0.5,
+            "Rotor diameter (m)", min_value=1.0, max_value=200.0, value=56.0, step=0.5,
             help="Enercon E-44 = 44 m. Swept area A = π(D/2)²",
         )
         rated_power_kw = st.number_input(
@@ -634,7 +634,7 @@ with tab_settings:
     with col_e:
         export_peak_limit_kw = st.number_input(
             "Peak export limit (kW)",
-            min_value=0, max_value=500_000, value=40_000, step=1_000,
+            min_value=0, max_value=500_000, value=30_000, step=1_000,
             help="Maximum power (kW) that can be exported to the grid during peak hours. "
                  "Surplus above this cap is curtailed.",
         )
@@ -646,7 +646,7 @@ with tab_settings:
     with col_f:
         export_offpeak_limit_kw = st.number_input(
             "Off-peak export limit (kW)",
-            min_value=0, max_value=500_000, value=40_000, step=1_000,
+            min_value=0, max_value=500_000, value=5_000, step=1_000,
             help="Maximum power (kW) that can be exported to the grid outside peak hours. "
                  "Surplus above this cap is curtailed.",
         )
