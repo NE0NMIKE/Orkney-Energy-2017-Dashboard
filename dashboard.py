@@ -1228,6 +1228,8 @@ with tab_summary:
     fig_ann_energy = go.Figure(go.Bar(
         x=ann_energy_labels, y=ann_energy_vals,
         marker_color=ann_energy_colors,
+        text=[f"{v:.1f}" for v in ann_energy_vals],
+        textposition="outside",
         hovertemplate="%{x}: %{y:.2f} GWh<extra></extra>",
     ))
     fig_ann_energy.update_layout(
@@ -1235,6 +1237,8 @@ with tab_summary:
         yaxis_title="Energy (GWh)",
         margin=dict(t=40),
         showlegend=False,
+        uniformtext=dict(mode="hide", minsize=10),
+        yaxis=dict(automargin=True),
     )
     st.plotly_chart(fig_ann_energy, use_container_width=True)
 
@@ -1249,6 +1253,8 @@ with tab_summary:
     fig_ann_hours = go.Figure(go.Bar(
         x=ann_hours_labels, y=ann_hours_vals,
         marker_color=ann_hours_colors,
+        text=[f"{v:.1f}" for v in ann_hours_vals],
+        textposition="outside",
         hovertemplate="%{x}: %{y:.1f} h<extra></extra>",
     ))
     fig_ann_hours.update_layout(
@@ -1256,6 +1262,8 @@ with tab_summary:
         yaxis_title="Hours",
         margin=dict(t=40),
         showlegend=False,
+        uniformtext=dict(mode="hide", minsize=10),
+        yaxis=dict(automargin=True),
     )
     st.plotly_chart(fig_ann_hours, use_container_width=True)
 
