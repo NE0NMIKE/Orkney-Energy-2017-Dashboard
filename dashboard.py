@@ -1111,3 +1111,113 @@ with tab_yearly:
         totals["curtailed_hours"].sum(),
         total_storm_hrs=totals["storm_shutdown_hours"].sum(),
     )
+
+# ── Summary ────────────────────────────────────────────────────────────────────
+with tab_summary:
+    st.header("Annual Summary")
+
+    # Compute monthly totals for the full year
+    monthly_results = {}
+    for m_num, m_name in MONTHS.items():
+        d_sl = demand_df[demand_df["Timestamp"].dt.month == m_num]
+        t_sl = turbine_df_active[turbine_df_active["Timestamp"].dt.month == m_num]
+        if d_sl.empty or t_sl.empty:
+            continue
+        mt = daily_totals(
+            d_sl, t_sl,
+            rotor_diameter_m, rated_power_kw, curtail_on_potential,
+            lut_wind, lut_power, rated_wind_speed_fit, cut_in_speed, cut_out_speed,
+            cp_factor=cp_factor, availability_factor=availability_factor,
+        )
+        monthly_results[m_name] = mt.sum()
+
+    month_names = list(monthly_results.keys())
+    def _mcol(col):
+        return [monthly_results[m][col] / 1e6 for m in month_names]  # → GWh
+
+    # ── Energy bar chart ───────────────────────────────────────────────────────
+    st.subheader("Monthly Energy Totals")
+    fig_energy = go.Figure()
+    fig_energy.add_trace(go.Bar(
+        name="Potential", x=month_names, y=_mcol("potential_kwh"),
+        marker_color=color_potential,
+        hovertemplate="%{x}<br>Potential: %{y:.2f} GWh<extra></extra>",
+    ))
+    fig_energy.add_trace(go.Bar(
+        name="Turbine", x=month_names, y=_mcol("actual_kwh"),
+        marker_color=color_turbine,
+        hovertemplate="%{x}<br>Turbine: %{y:.2f} GWh<extra></extra>",
+    ))
+    fig_energy.add_trace(go.Bar(
+        name="Exported", x=month_names, y=_mcol("export_kwh"),
+        marker_color=color_exported,
+        hovertemplate="%{x}<br>Exported: %{y:.2f} GWh<extra></extra>",
+    ))
+    fig_energy.add_trace(go.Bar(
+        name="Demand", x=month_names, y=_mcol("demand_kwh"),
+        marker_color=color_demand,
+        hovertemplate="%{x}<br>Demand: %{y:.2f} GWh<extra></extra>",
+    ))
+    fig_energy.add_trace(go.Bar(
+        name="Curtailed", x=month_names, y=_mcol("curtailed_kwh"),
+        marker_color=color_curtailed,
+        hovertemplate="%{x}<br>Curtailed: %{y:.2f} GWh<extra></extra>",
+    ))
+    fig_energy.update_layout(
+        barmode="group",
+        xaxis_title="Month",
+        yaxis_title="Energy (GWh)",
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+        margin=dict(t=60),
+        hovermode="x unified",
+    )
+    st.plotly_chart(fig_energy, use_container_width=True)
+
+    # ── Hours bar chart ────────────────────────────────────────────────────────
+    st.subheader("Monthly Hours")
+    total_hours = [monthly_results[m]["curtailed_hours"] + monthly_results[m]["storm_shutdown_hours"]
+                   for m in month_names]
+    curtail_hours = [monthly_results[m]["curtailed_hours"] for m in month_names]
+    storm_hours   = [monthly_results[m]["storm_shutdown_hours"] for m in month_names]
+
+    fig_hours = go.Figure()
+    fig_hours.add_trace(go.Bar(
+        name="Total Event Hours", x=month_names, y=total_hours,
+        marker_color=color_total_hrs,
+        hovertemplate="%{x}<br>Total: %{y:.1f} h<extra></extra>",
+    ))
+    fig_hours.add_trace(go.Bar(
+        name="Curtailment Hours", x=month_names, y=curtail_hours,
+        marker_color=color_curtail_hrs,
+        hovertemplate="%{x}<br>Curtailment: %{y:.1f} h<extra></extra>",
+    ))
+    fig_hours.add_trace(go.Bar(
+        name="Storm Shutdown Hours", x=month_names, y=storm_hours,
+        marker_color=color_storm_hrs,
+        hovertemplate="%{x}<br>Storm Shutdown: %{y:.1f} h<extra></extra>",
+    ))
+    fig_hours.update_layout(
+        barmode="group",
+        xaxis_title="Month",
+        yaxis_title="Hours",
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+        margin=dict(t=60),
+        hovermode="x unified",
+    )
+    st.plotly_chart(fig_hours, use_container_width=True)
+
+    # ── Annual totals metrics ──────────────────────────────────────────────────
+    st.subheader("Annual Totals")
+    ann_totals = daily_totals(
+        demand_df, turbine_df_active,
+        rotor_diameter_m, rated_power_kw, curtail_on_potential,
+        lut_wind, lut_power, rated_wind_speed_fit, cut_in_speed, cut_out_speed,
+        cp_factor=cp_factor, availability_factor=availability_factor,
+    )
+    show_metrics(
+        ann_totals["demand_kwh"].sum(), ann_totals["actual_kwh"].sum(),
+        ann_totals["potential_kwh"].sum(), ann_totals["curtailed_kwh"].sum(),
+        ann_totals["export_kwh"].sum(), ann_totals["unmet_kwh"].sum(),
+        ann_totals["curtailed_hours"].sum(),
+        total_storm_hrs=ann_totals["storm_shutdown_hours"].sum(),
+    )
