@@ -280,6 +280,22 @@ with st.sidebar:
 
     st.divider()
 
+    with st.expander("Summary chart colours", expanded=False):
+        st.markdown("**Energy chart**")
+        c1, c2 = st.columns(2)
+        color_potential   = c1.color_picker("Potential",         "#FFC000", key="cp_potential")
+        color_turbine     = c2.color_picker("Turbine",           "#FFC000", key="cp_turbine")
+        color_exported    = c1.color_picker("Exported",          "#FFC000", key="cp_exported")
+        color_demand      = c2.color_picker("Demand",            "#FFC000", key="cp_demand")
+        color_curtailed   = c1.color_picker("Curtailed",         "#FFC000", key="cp_curtailed")
+        st.markdown("**Hours chart**")
+        c3, c4 = st.columns(2)
+        color_total_hrs   = c3.color_picker("Total Hours",       "#808080", key="cp_total_hrs")
+        color_curtail_hrs = c4.color_picker("Curtailment Hours", "#808080", key="cp_curtail_hrs")
+        color_storm_hrs   = c3.color_picker("Storm Shutdown",    "#808080", key="cp_storm_hrs")
+
+    st.divider()
+
     st.markdown("""
 **About this dashboard**
 
@@ -560,6 +576,14 @@ export_peak_limit_kw     = 30_000
 export_offpeak_limit_kw  = 5_000
 export_peak_start_hour   = 7
 export_peak_end_hour     = 23
+color_potential   = "#FFC000"
+color_turbine     = "#FFC000"
+color_exported    = "#FFC000"
+color_demand      = "#FFC000"
+color_curtailed   = "#FFC000"
+color_total_hrs   = "#808080"
+color_curtail_hrs = "#808080"
+color_storm_hrs   = "#808080"
 
 # ── Tabs ──────────────────────────────────────────────────────────────────────
 tab_daily, tab_monthly, tab_seasonal, tab_yearly, tab_settings, tab_summary = st.tabs(
@@ -1097,26 +1121,24 @@ with tab_summary:
                              lut_wind, lut_power, rated_wind_speed_fit, cut_in_speed, cut_out_speed,
                              cp_factor=cp_factor, availability_factor=availability_factor)
 
-    # Convert kWh → GWh
     _GWh = 1_000_000
-    _potential_gwh  = _s_totals["potential_kwh"].sum()  / _GWh
-    _actual_gwh     = _s_totals["actual_kwh"].sum()     / _GWh
-    _export_gwh     = _s_totals["export_kwh"].sum()     / _GWh
-    _demand_gwh     = _s_totals["demand_kwh"].sum()     / _GWh
-    _curtailed_gwh  = _s_totals["curtailed_kwh"].sum()  / _GWh
-    _curtail_hrs    = _s_totals["curtailed_hours"].sum()
-    _storm_hrs      = _s_totals["storm_shutdown_hours"].sum()
+    _potential_gwh = _s_totals["potential_kwh"].sum() / _GWh
+    _actual_gwh    = _s_totals["actual_kwh"].sum()    / _GWh
+    _export_gwh    = _s_totals["export_kwh"].sum()    / _GWh
+    _demand_gwh    = _s_totals["demand_kwh"].sum()    / _GWh
+    _curtailed_gwh = _s_totals["curtailed_kwh"].sum() / _GWh
+    _curtail_hrs   = _s_totals["curtailed_hours"].sum()
+    _storm_hrs     = _s_totals["storm_shutdown_hours"].sum()
 
     col_s1, col_s2 = st.columns(2)
 
-    # ── Chart 1: Energy bar chart ─────────────────────────────────────────────
     with col_s1:
         _energy_cats = ["Potential", "Turbine", "Exported", "Demand", "Curtailed"]
         _energy_vals = [_potential_gwh, _actual_gwh, _export_gwh, _demand_gwh, _curtailed_gwh]
         fig_e = go.Figure(go.Bar(
             x=_energy_cats,
             y=_energy_vals,
-            marker_color="#FFC000",
+            marker_color=[color_potential, color_turbine, color_exported, color_demand, color_curtailed],
             text=[f"{v:.1f}" for v in _energy_vals],
             textposition="outside",
         ))
@@ -1129,14 +1151,13 @@ with tab_summary:
         )
         st.plotly_chart(fig_e, use_container_width=True)
 
-    # ── Chart 2: Hours bar chart ──────────────────────────────────────────────
     with col_s2:
         _hrs_cats = ["Total Hours", "Curtailment Hours", "Storm Shutdown Hours"]
         _hrs_vals = [8760.0, _curtail_hrs, _storm_hrs]
         fig_h = go.Figure(go.Bar(
             x=_hrs_cats,
             y=_hrs_vals,
-            marker_color="#808080",
+            marker_color=[color_total_hrs, color_curtail_hrs, color_storm_hrs],
             text=[f"{v:,.1f}" for v in _hrs_vals],
             textposition="outside",
         ))
