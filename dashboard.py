@@ -562,8 +562,8 @@ export_peak_start_hour   = 7
 export_peak_end_hour     = 23
 
 # ── Tabs ──────────────────────────────────────────────────────────────────────
-tab_daily, tab_monthly, tab_seasonal, tab_yearly, tab_settings = st.tabs(
-    ["Daily", "Monthly", "Seasonal", "Yearly", "Analysis Settings"]
+tab_daily, tab_monthly, tab_seasonal, tab_yearly, tab_settings, tab_summary = st.tabs(
+    ["Daily", "Monthly", "Seasonal", "Yearly", "Analysis Settings", "Summary"]
 )
 
 # ── Analysis Settings ─────────────────────────────────────────────────────────
@@ -1087,3 +1087,63 @@ with tab_yearly:
         totals["curtailed_hours"].sum(),
         total_storm_hrs=totals["storm_shutdown_hours"].sum(),
     )
+
+# ── Summary ───────────────────────────────────────────────────────────────────
+with tab_summary:
+    st.header("Annual Summary")
+
+    _s_totals = daily_totals(demand_df, turbine_df_active,
+                             rotor_diameter_m, rated_power_kw, curtail_on_potential,
+                             lut_wind, lut_power, rated_wind_speed_fit, cut_in_speed, cut_out_speed,
+                             cp_factor=cp_factor, availability_factor=availability_factor)
+
+    # Convert kWh → GWh
+    _GWh = 1_000_000
+    _potential_gwh  = _s_totals["potential_kwh"].sum()  / _GWh
+    _actual_gwh     = _s_totals["actual_kwh"].sum()     / _GWh
+    _export_gwh     = _s_totals["export_kwh"].sum()     / _GWh
+    _demand_gwh     = _s_totals["demand_kwh"].sum()     / _GWh
+    _curtailed_gwh  = _s_totals["curtailed_kwh"].sum()  / _GWh
+    _curtail_hrs    = _s_totals["curtailed_hours"].sum()
+    _storm_hrs      = _s_totals["storm_shutdown_hours"].sum()
+
+    col_s1, col_s2 = st.columns(2)
+
+    # ── Chart 1: Energy bar chart ─────────────────────────────────────────────
+    with col_s1:
+        _energy_cats = ["Potential", "Turbine", "Exported", "Demand", "Curtailed"]
+        _energy_vals = [_potential_gwh, _actual_gwh, _export_gwh, _demand_gwh, _curtailed_gwh]
+        fig_e = go.Figure(go.Bar(
+            x=_energy_cats,
+            y=_energy_vals,
+            marker_color="#FFC000",
+            text=[f"{v:.1f}" for v in _energy_vals],
+            textposition="outside",
+        ))
+        fig_e.update_layout(
+            xaxis_title="Annual Total Power",
+            yaxis_title="Energy / GWh",
+            showlegend=False,
+            margin=dict(t=40, b=40),
+            yaxis=dict(range=[0, _potential_gwh * 1.15]),
+        )
+        st.plotly_chart(fig_e, use_container_width=True)
+
+    # ── Chart 2: Hours bar chart ──────────────────────────────────────────────
+    with col_s2:
+        _hrs_cats = ["Total Hours", "Curtailment Hours", "Storm Shutdown Hours"]
+        _hrs_vals = [8760.0, _curtail_hrs, _storm_hrs]
+        fig_h = go.Figure(go.Bar(
+            x=_hrs_cats,
+            y=_hrs_vals,
+            marker_color="#808080",
+            text=[f"{v:,.1f}" for v in _hrs_vals],
+            textposition="outside",
+        ))
+        fig_h.update_layout(
+            yaxis_title="Hours",
+            showlegend=False,
+            margin=dict(t=40, b=40),
+            yaxis=dict(range=[0, 8760 * 1.15]),
+        )
+        st.plotly_chart(fig_h, use_container_width=True)
