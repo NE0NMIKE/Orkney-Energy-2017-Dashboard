@@ -774,7 +774,7 @@ with tab_settings:
             margin=dict(t=20, b=40), height=320,
             legend=dict(orientation="h", y=1.05),
         )
-        st.plotly_chart(fig_pc, use_container_width=True)
+        st.plotly_chart(fig_pc, use_container_width=True, config={'toImageButtonOptions': {'format': 'svg'}})
         auto_note = f" (auto-detected: {auto_rated_ws:.1f} m/s)" if abs(rated_wind_speed_input - auto_rated_ws) > 0.1 else " (auto-detected)"
         st.caption(f"Rated wind speed set to {rated_wind_speed_fit:.1f} m/s{auto_note}. "
                    f"Flat plateau enforced from this speed to cut-out.")
@@ -800,7 +800,7 @@ with tab_settings:
             margin=dict(t=20, b=40), height=320,
             legend=dict(orientation="h", y=1.05),
         )
-        st.plotly_chart(fig_temp, use_container_width=True)
+        st.plotly_chart(fig_temp, use_container_width=True, config={'toImageButtonOptions': {'format': 'svg'}})
 
     # ── Plot 3: Air density vs month ──────────────────────────────────────────
     with diag3:
@@ -816,7 +816,7 @@ with tab_settings:
             margin=dict(t=20, b=40), height=320,
             legend=dict(orientation="h", y=1.05),
         )
-        st.plotly_chart(fig_rho, use_container_width=True)
+        st.plotly_chart(fig_rho, use_container_width=True, config={'toImageButtonOptions': {'format': 'svg'}})
 
 # ── Active turbine datasource (set after tab_settings executes) ───────────────
 turbine_df_active = turbine_fixed_df if use_fixed_data else turbine_df
@@ -905,7 +905,7 @@ with tab_daily:
             legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
             margin=dict(t=80),
         )
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, use_container_width=True, config={'toImageButtonOptions': {'format': 'svg'}})
         st.caption("Tip: click a trace name in the legend to hide/show it. Double-click to isolate.")
 
         st.subheader("Daily Summary")
@@ -980,7 +980,7 @@ with tab_daily:
             xaxis_title="Time", yaxis_title="Power (kW)",
             hovermode="x unified", margin=dict(t=80),
         )
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, use_container_width=True, config={'toImageButtonOptions': {'format': 'svg'}})
         st.subheader("Daily Summary")
         col1, col2 = st.columns(2)
         col1.metric("Peak Demand",  f"{d['demand_kw'].max():,.0f} kW")
@@ -1006,7 +1006,7 @@ with tab_monthly:
         f"Daily Energy Totals - {month_name} 2017", "kWh",
         storm_shutdown=totals["storm_shutdown_kwh"],
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, use_container_width=True, config={'toImageButtonOptions': {'format': 'svg'}})
     st.caption("Tip: click a trace name in the legend to hide/show it. Double-click to isolate.")
 
     st.subheader(f"{month_name} Summary")
@@ -1068,7 +1068,7 @@ with tab_seasonal:
             tickvals=week_ticks,
             ticktext=[d.strftime("%d %b") for d in week_ticks],
         )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, use_container_width=True, config={'toImageButtonOptions': {'format': 'svg'}})
     st.caption("Tip: click a trace name in the legend to hide/show it. Double-click to isolate.")
 
     st.subheader(f"{season_name} Summary")
@@ -1100,7 +1100,7 @@ with tab_yearly:
         tickvals=month_ticks,
         ticktext=[d.strftime("%b") for d in month_ticks],
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, use_container_width=True, config={'toImageButtonOptions': {'format': 'svg'}})
     st.caption("Tip: click a trace name in the legend to hide/show it. Double-click to isolate.")
 
     st.subheader("Yearly Summary")
@@ -1171,7 +1171,7 @@ with tab_summary:
         margin=dict(t=60),
         hovermode="x unified",
     )
-    st.plotly_chart(fig_energy, use_container_width=True)
+    st.plotly_chart(fig_energy, use_container_width=True, config={'toImageButtonOptions': {'format': 'svg'}})
 
     # ── Hours bar chart ────────────────────────────────────────────────────────
     st.subheader("Monthly Hours")
@@ -1204,7 +1204,7 @@ with tab_summary:
         margin=dict(t=60),
         hovermode="x unified",
     )
-    st.plotly_chart(fig_hours, use_container_width=True)
+    st.plotly_chart(fig_hours, use_container_width=True, config={'toImageButtonOptions': {'format': 'svg'}})
 
     # ── Annual totals ──────────────────────────────────────────────────────────
     st.subheader("Annual Totals")
@@ -1240,7 +1240,7 @@ with tab_summary:
         uniformtext=dict(mode="hide", minsize=10),
         yaxis=dict(automargin=True),
     )
-    st.plotly_chart(fig_ann_energy, use_container_width=True)
+    st.plotly_chart(fig_ann_energy, use_container_width=True, config={'toImageButtonOptions': {'format': 'svg'}})
 
     # Annual hours bar chart
     ann_hours_labels = ["Total Hours", "Curtailment Hours", "Storm Shutdown Hours"]
@@ -1265,7 +1265,7 @@ with tab_summary:
         uniformtext=dict(mode="hide", minsize=10),
         yaxis=dict(automargin=True),
     )
-    st.plotly_chart(fig_ann_hours, use_container_width=True)
+    st.plotly_chart(fig_ann_hours, use_container_width=True, config={'toImageButtonOptions': {'format': 'svg'}})
 
     show_metrics(
         ann_totals["demand_kwh"].sum(), ann_totals["actual_kwh"].sum(),
